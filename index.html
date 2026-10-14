@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#173f35">
+<title>Pedido em casa • Teste de localização</title>
+<style>
+:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#173f35;background:#f3f1e9;color-scheme:light}
+*{box-sizing:border-box}body{margin:0}main{max-width:1040px;margin:auto;padding:42px 24px}header{display:flex;justify-content:space-between;align-items:center;margin-bottom:42px}.brand{font-size:20px;font-weight:800}.tag{font-size:11px;font-weight:700;letter-spacing:1.5px;border:1px solid #bac7bd;border-radius:30px;padding:9px 12px}h1{font-size:clamp(36px,6vw,64px);line-height:1.06;letter-spacing:-2px;max-width:650px;margin:0 0 18px}.intro{max-width:570px;color:#657069;font-size:17px;line-height:1.6;margin-bottom:32px}.grid{display:grid;grid-template-columns:1.05fr 1fr;gap:22px}.card{background:#fffef9;border:1px solid #dedfd5;border-radius:24px;padding:28px}h2{font-size:22px;margin:0 0 20px}.eyebrow{font-size:11px;letter-spacing:2px;font-weight:800;margin-bottom:15px;color:#69756d}.status{background:#eef0e9;border-radius:16px;padding:20px;margin-bottom:20px;min-height:126px}.status[data-state=allowed]{background:#e4f3e6}.status[data-state=blocked]{background:#fff0df}.status strong{display:block;font-size:18px;margin-bottom:8px}.status p{margin:0;color:#56625c;font-size:14px;line-height:1.5}button{width:100%;padding:16px;border:0;border-radius:12px;font:inherit;font-weight:700;cursor:pointer;background:#173f35;color:white;transition:background .2s}button:hover:enabled{background:#25604f}button:disabled{background:#e2e6dd;color:#778279;cursor:not-allowed}button.secondary{background:transparent;color:#173f35;border:1px solid #b8c3b9;margin-bottom:12px}button:focus-visible,a:focus-visible{outline:3px solid #d37f35;outline-offset:4px}.details{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0}.details span{display:block;color:#6b776d;font-size:12px;margin-bottom:4px}.details b{font-size:20px}.note{font-size:12px;color:#6b776d;line-height:1.6}.address{font-size:15px;line-height:1.6;margin:0 0 18px}.map{height:210px;border-radius:14px;background:#e9eee5;overflow:hidden;display:flex;align-items:center;justify-content:center;text-align:center;padding:18px;color:#67746a;font-size:14px}.map iframe{width:100%;height:100%;border:0}.map:has(iframe){padding:0}a{color:#173f35;text-underline-offset:4px}.map-link{display:inline-block;font-size:14px;margin-top:14px}.rules{border-top:1px solid #dedfd5;margin-top:22px;padding-top:20px;font-size:13px;color:#66716a;line-height:1.7}footer{font-size:12px;color:#6b776d;margin:25px 0}#receipt{margin-top:18px;padding:18px;border:1px solid #b7cfb7;border-radius:12px;background:#edf6e9;font-size:14px;line-height:1.5}#receipt[hidden]{display:none}@media(max-width:700px){main{padding:25px 18px}header{margin-bottom:34px}.grid{grid-template-columns:1fr}.card{padding:23px}h1{letter-spacing:-1px}}
+</style>
+</head>
+<body>
+<main>
+<header><div class="brand">Pedido em casa<span aria-hidden="true"> ↗</span></div><span class="tag">TESTE DE LOCALIZAÇÃO</span></header>
+<h1>Seu pedido começa<br>quando você chega.</h1>
+<p class="intro">Autorize sua localização para verificar se você está na área da residência. O botão de pedido só libera com a posição confirmada.</p>
+<div class="grid">
+<section class="card" aria-labelledby="order-title">
+<div class="eyebrow">01 / VERIFICAR E PEDIR</div><h2 id="order-title">Está em casa?</h2>
+<div id="status" class="status" data-state="idle" role="status" aria-live="polite"><strong id="status-title">Localização ainda não verificada</strong><p id="status-text">Toque abaixo e permita que o navegador acesse sua localização.</p></div>
+<button id="locate" class="secondary" type="button">Verificar minha localização</button>
+<button id="order" type="button" disabled>Fazer pedido de teste</button>
+<div class="details"><div><span>Distância do ponto</span><b id="distance">—</b></div><div><span>Margem de erro do GPS</span><b id="accuracy">—</b></div></div>
+<p class="note">Sua posição é calculada neste navegador e não é enviada a um servidor de pedidos. Este teste apenas mostra uma confirmação na tela.</p>
+<div id="receipt" role="status" hidden></div>
+</section>
+<section class="card" aria-labelledby="home-title">
+<div class="eyebrow">02 / ÁREA PERMITIDA</div><h2 id="home-title">Ponto da residência</h2>
+<p class="address">Rua Prof. Teotônio Monteiro de Barros Filho, 436<br>Vila Butantã · São Paulo / SP</p>
+<div id="map" class="map"><button id="load-map" class="secondary" type="button">Mostrar no Google Maps</button></div>
+<a id="maps-link" class="map-link" target="_blank" rel="noopener noreferrer">Abrir ponto no Google Maps ↗</a>
+<div class="rules">Raio do teste: <strong id="radius"></strong>.<br>Para liberar: distância + margem de erro devem caber dentro do raio. Posições antigas, imprecisas ou fora da área mantêm o pedido bloqueado. A posição é conferida novamente ao pedir.</div>
+<p class="note">Um raio ao redor do ponto pode incluir parte da rua e de imóveis vizinhos. O GPS não identifica paredes ou o interior da casa. Ao abrir o mapa, você se conecta ao Google.</p>
+</section>
+</div>
+<footer>Use no celular, com a localização ativada. Publique este arquivo em um endereço HTTPS.</footer>
+</main>
+<script>
+'use strict';
+// CONFIGURAÇÃO: coordenadas do marcador !3d / !4d no link fornecido.
+// O trecho @ do Google Maps indica o centro da câmera, não o marcador da casa.
+const HOME = Object.freeze({ lat: -23.5663078, lng: -46.7464983, radiusMeters: 35 });
+const MAX_ACCURACY_METERS = 25;
+const MAX_AGE_MS = 15000;
+const OPTIONS = { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 };
+const el = id => document.getElementById(id);
+let watchId = null, lastPosition = null, submitting = false, generation = 0;
+function distanceMeters(lat1, lng1, lat2, lng2) {
+  const rad = n => n * Math.PI / 180;
+  const a = Math.sin(rad(lat2-lat1)/2)**2 + Math.cos(rad(lat1))*Math.cos(rad(lat2))*Math.sin(rad(lng2-lng1)/2)**2;
+  return 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(Math.max(0,1-a)));
+}
+function assess(position, now = Date.now()) {
+  if (!position || !position.coords) return { allowed:false, reason:'missing' };
+  const { latitude, longitude, accuracy } = position.coords;
+  if (![latitude,longitude,accuracy,position.timestamp].every(Number.isFinite) || Math.abs(latitude)>90 || Math.abs(longitude)>180 || accuracy<0) return {allowed:false,reason:'invalid'};
+  const distance = distanceMeters(HOME.lat, HOME.lng, latitude, longitude);
+  const age = now-position.timestamp;
+  if (age< -1000 || age>MAX_AGE_MS) return {allowed:false,reason:'stale',distance,accuracy};
+  if (distance > HOME.radiusMeters) return {allowed:false,reason:'outside',distance,accuracy};
+  if (accuracy > MAX_ACCURACY_METERS || distance+accuracy > HOME.radiusMeters) return {allowed:false,reason:'uncertain',distance,accuracy};
+  return {allowed:true,reason:'inside',distance,accuracy};
+}
+function status(title, message, state='blocked') {
+  el('status-title').textContent=title; el('status-text').textContent=message; el('status').dataset.state=state;
+}
+function render(position) {
+  const result=assess(position);
+  el('order').disabled=!result.allowed || submitting || document.hidden;
+  el('distance').textContent=Number.isFinite(result.distance) ? Math.round(result.distance)+' m' : '—';
+  el('accuracy').textContent=Number.isFinite(result.accuracy) ? '± '+Math.ceil(result.accuracy)+' m' : '—';
+  if (submitting) return result;
+  if (result.allowed) status('Na área permitida','Localização confirmada. Você pode fazer o pedido de teste.','allowed');
+  else if(result.reason==='outside') status('Fora da área permitida','Aproxime-se da residência para liberar o botão.');
+  else if(result.reason==='uncertain') status('Precisão insuficiente','Ainda não dá para confirmar sua posição dentro da área. Mantenha a localização precisa ativada e aguarde.');
+  else if(result.reason==='stale') status('Localização precisa ser atualizada','A última posição expirou. Verifique sua localização novamente.');
+  else status('Localização não confirmada','Verifique sua localização para continuar.');
+  return result;
+}
+function stopWatch() { if(watchId!==null) navigator.geolocation.clearWatch(watchId); watchId=null; }
+function geoError(error) {
+  lastPosition=null; el('order').disabled=true; el('distance').textContent='—'; el('accuracy').textContent='—';
+  const messages={1:['Permissão de localização negada','Permita a localização nas configurações deste site e tente novamente.'],2:['Localização indisponível','Ative a localização do aparelho e tente novamente.'],3:['A localização demorou demais','Tente novamente em um local com melhor sinal de GPS.']};
+  const message=messages[error.code] || ['Não foi possível localizar','Tente verificar sua localização novamente.'];
+  status(...message);
+}
+function checkSupport() {
+  if(!window.isSecureContext) {status('Abra o site em HTTPS','O navegador precisa de uma conexão segura para acessar sua localização.');return false;}
+  if(!navigator.geolocation) {status('Navegador sem geolocalização','Abra este site em um navegador com suporte à localização.');return false;}
+  return true;
+}
+el('radius').textContent=HOME.radiusMeters+' metros';
+el('maps-link').href='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(HOME.lat+','+HOME.lng);
+el('load-map').addEventListener('click',()=>{
+  const frame=document.createElement('iframe'); frame.title='Ponto da residência no Google Maps'; frame.referrerPolicy='no-referrer-when-downgrade'; frame.loading='lazy';
+  frame.src='https://maps.google.com/maps?q='+encodeURIComponent(HOME.lat+','+HOME.lng)+'&z=19&output=embed'; el('map').replaceChildren(frame);
+});
+el('locate').addEventListener('click',()=>{
+  if(submitting || !checkSupport()) return;
+  stopWatch(); lastPosition=null; el('order').disabled=true; el('receipt').hidden=true;
+  status('Buscando sua localização…','Permita o acesso quando o navegador solicitar.','idle');
+  const token=++generation;
+  watchId=navigator.geolocation.watchPosition(position=>{
+    if(token!==generation || document.hidden) return;
+    lastPosition=position; render(position);
+  },error=>{if(token===generation) geoError(error);},OPTIONS);
+});
+el('order').addEventListener('click',()=>{
+  if(submitting || document.hidden || !checkSupport()) return;
+  if(!assess(lastPosition).allowed) {render(lastPosition);return;}
+  submitting=true; stopWatch(); const token=++generation;
+  el('order').disabled=true; el('locate').disabled=true; el('receipt').hidden=true;
+  status('Conferindo antes de pedir…','Buscando uma nova posição para validar este pedido.','idle');
+  navigator.geolocation.getCurrentPosition(position=>{
+    if(token!==generation) return;
+    submitting=false; el('locate').disabled=false; lastPosition=position;
+    const result=render(position);
+    if(result.allowed && !document.hidden) {
+      el('receipt').textContent='Pedido de teste confirmado às '+new Date().toLocaleTimeString('pt-BR')+'. Nenhum pedido real foi enviado.';
+      el('receipt').hidden=false;
+    }
+  },error=>{if(token!==generation)return;submitting=false;el('locate').disabled=false;geoError(error);},OPTIONS);
+});
+setInterval(()=>{if(lastPosition && !submitting && !document.hidden && !assess(lastPosition).allowed)render(lastPosition);},1000);
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){++generation;stopWatch();lastPosition=null;submitting=false;el('locate').disabled=false;el('order').disabled=true;el('receipt').hidden=true;status('Verifique ao retornar','A localização precisa ser confirmada novamente.');}
+});
+</script>
+</body>
+</html>
